@@ -22,6 +22,7 @@ export {
   type AxisName,
   type Criticality,
 } from './screen/level.js';
+export { runTemplate, type TemplateOptions } from './commands/template.js';
 export {
   runScreen,
   deriveFindings,

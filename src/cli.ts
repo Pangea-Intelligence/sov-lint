@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import { runLint } from './commands/lint.js';
 import { runScreen } from './commands/screen.js';
+import { runTemplate } from './commands/template.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json') as { version: string };
@@ -38,6 +39,15 @@ program
   .option('-q, --quiet', 'kein Banner', false)
   .action((file: string, opts) => {
     process.exitCode = runScreen(file, opts);
+  });
+
+program
+  .command('template')
+  .description('Starter-Stückliste mit Muster-Einträgen und Ausfüllhilfe schreiben')
+  .option('-o, --output <datei>', 'Zieldatei (Standard: stueckliste.json)')
+  .option('-f, --force', 'vorhandene Zieldatei überschreiben', false)
+  .action((opts) => {
+    process.exitCode = runTemplate(opts);
   });
 
 // Commanders Standard-Exit-Code für Bedienfehler ist 1 und kollidiert mit
