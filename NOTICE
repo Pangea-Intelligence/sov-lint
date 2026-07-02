@@ -1,0 +1,8 @@
+sov-lint
+Copyright 2026 Pangea Intelligence (https://pangea-intelligence.eu)
+
+Dieses Produkt enthält unveränderte JSON-Schemas aus dem Projekt
+CycloneDX Specification (https://github.com/CycloneDX/specification),
+Copyright OWASP Foundation, lizenziert unter der Apache License 2.0.
+Betroffene Dateien: schemas/bom-1.6.schema.json, schemas/spdx.schema.json,
+schemas/jsf-0.82.schema.json. Provenienz: schemas/PATCHES.md
