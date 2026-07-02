@@ -72,19 +72,28 @@ function checkEnvelope(data: unknown): Finding[] {
   return [];
 }
 
+/**
+ * Die volle lint-Kaskade auf bereits geparsten Daten: Envelope, dann Schema,
+ * dann Profil. Jede Schicht läuft nur, wenn die davor sauber war - sonst
+ * melden zwei Schichten dieselbe kaputte Stelle doppelt. Wird auch von
+ * `screen` genutzt: bewertet wird nur, was lint besteht.
+ */
+export function lintData(data: unknown): Finding[] {
+  let findings = checkEnvelope(data);
+  if (findings.length === 0) {
+    findings = validateBom(data);
+    if (findings.length === 0) {
+      findings = checkProfile(data);
+    }
+  }
+  return findings;
+}
+
 function lintOne(file: string): FileResult {
   let findings: Finding[];
   try {
     const { data } = readPayload(file);
-    findings = checkEnvelope(data);
-    if (findings.length === 0) {
-      findings = validateBom(data);
-      // Profil erst prüfen, wenn das Grundformat steht - sonst melden beide
-      // Schichten dieselbe kaputte Stelle doppelt.
-      if (findings.length === 0) {
-        findings = checkProfile(data);
-      }
-    }
+    findings = lintData(data);
   } catch (err) {
     const message = err instanceof ReadError ? err.message : `${file}: ${(err as Error).message}`;
     findings = [{ pointer: '', code: 'lesen/fehler', message }];

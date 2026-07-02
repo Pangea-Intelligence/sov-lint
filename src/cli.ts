@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { runLint } from './commands/lint.js';
+import { runScreen } from './commands/screen.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json') as { version: string };
@@ -27,6 +28,16 @@ program
   .option('-q, --quiet', 'nur Befunde ausgeben, kein Banner und keine Zusammenfassung', false)
   .action((files: string[], opts) => {
     process.exitCode = runLint(files, opts);
+  });
+
+program
+  .command('screen')
+  .description('Klumpenrisiko einer Stückliste bewerten (Level 0-4, Weakest-Link-Deckelung)')
+  .argument('<datei>', 'Stücklisten-Datei (CycloneDX-JSON, muss lint bestehen)')
+  .option('--json', 'maschinenlesbare JSON-Ausgabe', false)
+  .option('-q, --quiet', 'kein Banner', false)
+  .action((file: string, opts) => {
+    process.exitCode = runScreen(file, opts);
   });
 
 // Commanders Standard-Exit-Code für Bedienfehler ist 1 und kollidiert mit
