@@ -14,11 +14,38 @@ Problem wird. Ein Projekt von [Pangea Intelligence](https://pangea-intelligence.
 
 ## Schnellstart
 
+Drei Schritte, kein Setup:
+
 ```bash
-npx sov-lint lint stueckliste.json
+npx sov-lint template          # schreibt stueckliste.json mit Muster-Einträgen + Ausfüllhilfe
+npx sov-lint lint stueckliste.json     # prüft Form und Vollständigkeit
+npx sov-lint screen stueckliste.json   # bewertet: Klumpenrisiko-Level 0-4
 ```
 
-Beispiel-Ausgabe für eine unvollständige Stückliste:
+Beispiel-Ausgabe von `screen` für die fiktive Beispiel-Firma:
+
+```
+Stückliste: examples/arnsberg-antriebstechnik/stueckliste.json
+Einträge: 6 (davon 4 geschäftskritisch)
+
+  Stufe 0  GitHub                     wichtig            schwächste Achse: Daten
+  Stufe 1  SolidWorks                 geschäftskritisch  schwächste Achse: Kontinuität
+  Stufe 1  Microsoft 365              geschäftskritisch  schwächste Achse: Kontrolle
+  Stufe 2  DATEV Unternehmen online   geschäftskritisch  schwächste Achse: Daten
+  Stufe 3  proALPHA ERP               geschäftskritisch  schwächste Achse: Exit
+
+Klumpenrisiko-Level: Stufe 1 von 4 - stark abhängig
+Gedeckelt von: SolidWorks, Microsoft 365
+```
+
+Die Pointe der Beispiel-Firma: Nicht die Cloud ist das schwächste Glied,
+sondern das CAD-System, das im eigenen Haus läuft - und ohne Lizenzserver
+sofort stirbt, während die Konstruktionsdaten proprietär gefangen sind.
+Das Firmen-Level bestimmen nur **geschäftskritische** Einträge: GitHub steht
+auf Stufe 0, deckelt aber nicht. Die vollständigen Bewertungsregeln sind
+offen dokumentiert in [`docs/bewertung.md`](docs/bewertung.md).
+
+Beispiel-Ausgabe von `lint` für eine unvollständige Stückliste:
 
 ```
 sov-lint 0.1.0 - von Pangea Intelligence
@@ -61,13 +88,30 @@ CRA-Prozesse, und ohne neuen Standard, den niemand braucht. Die offiziellen
 Schemas sind byte-identisch gevendort und gepinnt
 ([`schemas/PATCHES.md`](schemas/PATCHES.md)).
 
+## Als GitHub Action
+
+Das Repo ist selbst eine Action - drei Zeilen, und jede Änderung an der
+Stückliste wird im CI geprüft:
+
+```yaml
+- uses: Pangea-Intelligence/sov-lint@main
+  with:
+    files: stueckliste.json          # command: screen für die Bewertung
+```
+
+Exit-Codes: `0` = sauber, `1` = Befunde (Step schlägt fehl), `2` = Bedienfehler.
+Die eigene CI dieses Repos führt die Action gegen die Beispiele aus - in beide
+Richtungen (saubere Datei passiert, kaputte lässt den Job scheitern).
+
 ## Was sov-lint bewusst nicht tut
 
-`lint` prüft Form und Vollständigkeit - es bewertet nicht. Die Bewertung
-(Klumpenrisiko-Level, Weakest-Link-Analyse) folgt als eigenes Kommando in einer
-kommenden Version; die Trennung ist Absicht: Die Datei beschreibt, das Werkzeug
-bewertet, und das Profil bleibt für fremde Werkzeuge mit eigener
-Bewertungslogik nutzbar.
+Die Spezifikation beschreibt, das Werkzeug bewertet - deshalb steht die
+Bewertungslogik in [`docs/bewertung.md`](docs/bewertung.md) und nicht in der
+Spec, und das Profil bleibt für fremde Werkzeuge mit eigener Bewertungslogik
+nutzbar. Die Bewertung selbst ist eine Heuristik für den Ersteindruck, kein
+Audit: Sie kennt weder Vertragsdetails noch Migrationsrealität. Für
+priorisierte Gegenmaßnahmen, Branchenvergleiche und die wirtschaftliche
+Bewertung der Exit-Pfade: [Pangea Intelligence](https://pangea-intelligence.eu).
 
 Ebenfalls Absicht: v0.1 beschreibt nur die **eigenen** Abhängigkeiten. Der
 Durchgriff auf Zulieferer folgt in v0.2 mit einem maschinenlesbaren Fragebogen.
@@ -76,7 +120,7 @@ Durchgriff auf Zulieferer folgt in v0.2 mit einem maschinenlesbaren Fragebogen.
 
 ```bash
 npm install
-npm test          # vitest, 22 Tests
+npm test          # vitest
 npm run build     # tsc -> dist/
 npm run dev       # CLI aus den Quellen: npx tsx src/cli.ts
 ```
