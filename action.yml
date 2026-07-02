@@ -1,0 +1,42 @@
+name: 'sov-lint'
+description: 'Linter und Klumpenrisiko-Screening für digitale Abhängigkeits-Stücklisten (CycloneDX 1.6 + dsov-Profil). Von Pangea Intelligence.'
+author: 'Pangea Intelligence'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  command:
+    description: 'Kommando: lint oder screen'
+    required: false
+    default: 'lint'
+  files:
+    description: 'Zu prüfende Datei(en), leerzeichengetrennt. screen erwartet genau eine Datei.'
+    required: true
+  version:
+    description: 'sov-lint-Version von npm (z.B. 0.1.0 oder latest). Sonderwert "local": baut den Checkout dieser Action (nur für die CI dieses Repos).'
+    required: false
+    default: 'latest'
+  args:
+    description: 'Zusätzliche CLI-Argumente, z.B. "--json"'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: sov-lint ausführen
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.version }}" = "local" ]; then
+          # Aus dem Action-Checkout bauen - so testet die CI dieses Repos die
+          # Action selbst, bevor eine Version auf npm liegt.
+          ( cd "${GITHUB_ACTION_PATH}" && npm ci --silent && npm run build --silent )
+          RUNNER=(node "${GITHUB_ACTION_PATH}/dist/cli.js")
+        else
+          RUNNER=(npx --yes "sov-lint@${{ inputs.version }}")
+        fi
+        read -r -a FILES <<< "${{ inputs.files }}"
+        read -r -a EXTRA <<< "${{ inputs.args }}"
+        "${RUNNER[@]}" "${{ inputs.command }}" "${FILES[@]}" ${EXTRA[@]+"${EXTRA[@]}"}

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  # Dogfooding: Das Repo ist selbst eine GitHub Action. Dieser Job beweist
+  # beide Pfade - saubere Dateien passieren, kaputte lassen den Step scheitern.
+  action-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: lint der validen Beispiel-Stückliste (muss bestehen)
+        uses: ./
+        with:
+          command: lint
+          files: examples/arnsberg-antriebstechnik/stueckliste.json
+          version: local
+
+      - name: lint der fehlerhaften Stückliste (muss scheitern)
+        id: broken
+        continue-on-error: true
+        uses: ./
+        with:
+          command: lint
+          files: examples/arnsberg-antriebstechnik/stueckliste-fehlerhaft.json
+          version: local
+
+      - name: 'Assertion: fehlerhafte Datei hat den Step scheitern lassen'
+        if: steps.broken.outcome != 'failure'
+        run: |
+          echo "::error::Die fehlerhafte Stückliste hätte exit 1 liefern müssen (outcome war: ${{ steps.broken.outcome }})"
+          exit 1
+
+      - name: screen der Beispiel-Firma (Stufe 1 -> akute Befunde -> exit 1)
+        id: screen
+        continue-on-error: true
+        uses: ./
+        with:
+          command: screen
+          files: examples/arnsberg-antriebstechnik/stueckliste.json
+          version: local
+
+      - name: 'Assertion: screen hat die Decker gemeldet'
+        if: steps.screen.outcome != 'failure'
+        run: |
+          echo "::error::screen hätte bei Firmen-Level 1 exit 1 liefern müssen (outcome war: ${{ steps.screen.outcome }})"
+          exit 1
