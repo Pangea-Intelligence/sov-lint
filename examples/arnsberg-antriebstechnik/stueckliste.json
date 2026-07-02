@@ -1,0 +1,125 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "manufacturer": { "name": "Arnsberg Antriebstechnik GmbH (fiktiv)" }
+  },
+  "services": [
+    {
+      "name": "Microsoft 365",
+      "provider": { "name": "Microsoft Ireland Operations Ltd." },
+      "description": "Mail, Kalender, Dateiablage, Teams - das komplette Büro",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "US" },
+        { "name": "dsov:provider:extraterritorial", "value": "ja" },
+        { "name": "dsov:service:deployment", "value": "cloud-anbieter" },
+        { "name": "dsov:data:location", "value": "eu-ewr" },
+        { "name": "dsov:data:classification", "value": "geschäftsdaten" },
+        { "name": "dsov:data:classification", "value": "personenbezogen" },
+        { "name": "dsov:data:backup", "value": "beim-anbieter" },
+        { "name": "dsov:dependency:criticality", "value": "geschäftskritisch" },
+        { "name": "dsov:dependency:offlineCapability", "value": "stunden" },
+        { "name": "dsov:dependency:integrationDepth", "value": "tief-integriert" },
+        { "name": "dsov:exit:alternative", "value": "mit-abstrichen" },
+        { "name": "dsov:exit:dataPortability", "value": "teilweise" }
+      ]
+    },
+    {
+      "name": "DATEV Unternehmen online",
+      "provider": { "name": "DATEV eG" },
+      "description": "Buchhaltung und Lohnabrechnung, gemeinsam mit dem Steuerberater",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "DE" },
+        { "name": "dsov:provider:extraterritorial", "value": "nein" },
+        { "name": "dsov:service:deployment", "value": "cloud-anbieter" },
+        { "name": "dsov:data:location", "value": "deutschland" },
+        { "name": "dsov:data:classification", "value": "geschäftsdaten" },
+        { "name": "dsov:data:classification", "value": "personenbezogen" },
+        { "name": "dsov:data:backup", "value": "beim-anbieter" },
+        { "name": "dsov:dependency:criticality", "value": "geschäftskritisch" },
+        { "name": "dsov:dependency:offlineCapability", "value": "tage" },
+        { "name": "dsov:dependency:integrationDepth", "value": "schnittstellen" },
+        { "name": "dsov:exit:alternative", "value": "verfügbar" },
+        { "name": "dsov:exit:dataPortability", "value": "vollständig" }
+      ]
+    },
+    {
+      "name": "GitHub",
+      "provider": { "name": "GitHub, Inc." },
+      "description": "Versionsverwaltung für SPS- und Steuerungscode",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "US" },
+        { "name": "dsov:provider:extraterritorial", "value": "ja" },
+        { "name": "dsov:service:deployment", "value": "cloud-anbieter" },
+        { "name": "dsov:data:location", "value": "drittland" },
+        { "name": "dsov:data:classification", "value": "betriebsgeheimnisse" },
+        { "name": "dsov:data:backup", "value": "unabhängig" },
+        { "name": "dsov:dependency:criticality", "value": "wichtig" },
+        { "name": "dsov:dependency:offlineCapability", "value": "tage" },
+        { "name": "dsov:dependency:integrationDepth", "value": "schnittstellen" },
+        { "name": "dsov:exit:alternative", "value": "verfügbar" },
+        { "name": "dsov:exit:dataPortability", "value": "vollständig" }
+      ]
+    },
+    {
+      "name": "Mailchimp",
+      "provider": { "name": "Intuit Inc." },
+      "description": "Newsletter an Bestandskunden, vier Aussendungen pro Jahr",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "US" },
+        { "name": "dsov:provider:extraterritorial", "value": "ja" },
+        { "name": "dsov:service:deployment", "value": "cloud-anbieter" },
+        { "name": "dsov:data:location", "value": "drittland" },
+        { "name": "dsov:data:classification", "value": "unkritisch" },
+        { "name": "dsov:data:backup", "value": "keins" },
+        { "name": "dsov:dependency:criticality", "value": "ersetzbar" },
+        { "name": "dsov:dependency:offlineCapability", "value": "dauerhaft" },
+        { "name": "dsov:dependency:integrationDepth", "value": "standalone" },
+        { "name": "dsov:exit:alternative", "value": "verfügbar" },
+        { "name": "dsov:exit:dataPortability", "value": "vollständig" }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "type": "application",
+      "name": "SolidWorks",
+      "supplier": { "name": "Dassault Systèmes SolidWorks Corp." },
+      "description": "CAD-Arbeitsplätze der Konstruktion, Lizenzserver im Haus",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "FR" },
+        { "name": "dsov:provider:extraterritorial", "value": "nein" },
+        { "name": "dsov:service:deployment", "value": "on-premise-lizenzpflichtig" },
+        { "name": "dsov:data:location", "value": "deutschland" },
+        { "name": "dsov:data:classification", "value": "betriebsgeheimnisse" },
+        { "name": "dsov:data:backup", "value": "unabhängig" },
+        { "name": "dsov:dependency:criticality", "value": "geschäftskritisch" },
+        { "name": "dsov:dependency:offlineCapability", "value": "sofort-tot" },
+        { "name": "dsov:dependency:integrationDepth", "value": "schnittstellen" },
+        { "name": "dsov:exit:alternative", "value": "mit-abstrichen" },
+        { "name": "dsov:exit:dataPortability", "value": "proprietär-gefangen" }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "proALPHA ERP",
+      "supplier": { "name": "proALPHA GmbH" },
+      "description": "Warenwirtschaft, Fertigungssteuerung, Einkauf - läuft auf eigenem Server",
+      "properties": [
+        { "name": "dsov:provider:country", "value": "DE" },
+        { "name": "dsov:provider:extraterritorial", "value": "nein" },
+        { "name": "dsov:service:deployment", "value": "on-premise-autark" },
+        { "name": "dsov:data:location", "value": "deutschland" },
+        { "name": "dsov:data:classification", "value": "geschäftsdaten" },
+        { "name": "dsov:data:classification", "value": "betriebsgeheimnisse" },
+        { "name": "dsov:data:backup", "value": "unabhängig" },
+        { "name": "dsov:dependency:criticality", "value": "geschäftskritisch" },
+        { "name": "dsov:dependency:offlineCapability", "value": "dauerhaft" },
+        { "name": "dsov:dependency:integrationDepth", "value": "tief-integriert" },
+        { "name": "dsov:exit:alternative", "value": "mit-abstrichen" },
+        { "name": "dsov:exit:dataPortability", "value": "teilweise" }
+      ]
+    }
+  ]
+}

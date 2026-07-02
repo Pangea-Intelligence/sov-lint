@@ -1,0 +1,47 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "manufacturer": { "name": "Arnsberg Antriebstechnik GmbH (fiktiv)" }
+  },
+  "services": [
+    {
+      "name": "Microsoft 365",
+      "provider": { "name": "Microsoft Ireland Operations Ltd." },
+      "properties": [
+        { "name": "dsov:provider:contry", "value": "US" },
+        { "name": "dsov:provider:extraterritorial", "value": "ja" },
+        { "name": "dsov:provider:extraterritorial", "value": "unbekannt" },
+        { "name": "dsov:service:deployment", "value": "cloud-anbieter" },
+        { "name": "dsov:data:location", "value": "eu-ewr" },
+        { "name": "dsov:data:classification", "value": "geschäftsdaten" },
+        { "name": "dsov:data:backup", "value": "beim-anbieter" },
+        { "name": "dsov:dependency:criticality", "value": "geschäftskritisch" },
+        { "name": "dsov:dependency:integrationDepth", "value": "tief-integriert" },
+        { "name": "dsov:exit:alternative", "value": "mit-abstrichen" },
+        { "name": "dsov:exit:dataPortability", "value": "teilweise" }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "type": "application",
+      "name": "SolidWorks",
+      "supplier": { "name": "Dassault Systèmes SolidWorks Corp." },
+      "properties": [
+        { "name": "dsov:provider:country", "value": "FR" },
+        { "name": "dsov:provider:extraterritorial", "value": "nein" },
+        { "name": "dsov:service:deployment", "value": "on-premise-lizenzpflichtig" },
+        { "name": "dsov:data:location", "value": "deutschland" },
+        { "name": "dsov:data:classification", "value": "betriebsgeheimnisse" },
+        { "name": "dsov:data:backup", "value": "unabhängig" },
+        { "name": "dsov:dependency:criticality", "value": "kritisch" },
+        { "name": "dsov:dependency:offlineCapability", "value": "sofort-tot" },
+        { "name": "dsov:dependency:integrationDepth", "value": "schnittstellen" },
+        { "name": "dsov:exit:alternative", "value": "mit-abstrichen" },
+        { "name": "dsov:exit:dataPortability", "value": "proprietär-gefangen" }
+      ]
+    }
+  ]
+}
