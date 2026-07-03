@@ -44,7 +44,10 @@ jobs:
 
       - name: 'Exit-Code-Verträge exakt prüfen'
         run: |
-          set -uo pipefail
+          # GitHub startet das Skript mit "bash -e" - das würde beim ersten
+          # gewollten Nicht-Null-Exit (lint findet Befunde) abbrechen. errexit
+          # hier bewusst aus, wir prüfen die Codes selbst.
+          set +e -u -o pipefail
           fail=0
           check () { # $1=erwartet $2=beschreibung; Kommando folgt via "${@:3}"
             "${@:3}" >/dev/null 2>&1; local code=$?
