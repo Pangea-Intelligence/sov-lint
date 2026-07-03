@@ -38,6 +38,8 @@
     "schemas",
     "spec",
     "templates",
+    "docs",
+    "examples",
     "NOTICE"
   ],
   "scripts": {

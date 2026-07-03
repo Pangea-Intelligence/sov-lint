@@ -1,4 +1,5 @@
 import type { Finding } from './finding.js';
+import { cleanText } from './sanitize.js';
 
 /**
  * Das dsov-Profil v0.1: die Single Source of Truth der 11 Properties.
@@ -121,22 +122,36 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Sammelt alle Einträge aus components[] und services[] mit Pointer und Anzeigename. */
+/**
+ * Sammelt alle Einträge aus components[] und services[] mit Pointer und
+ * Anzeigename - inklusive verschachtelter Einträge (CycloneDX erlaubt
+ * components[].components[] und services[].services[]). Ohne die Rekursion
+ * rutschte ein Kind-Eintrag ganz ohne dsov-Properties unbemerkt durch.
+ */
 function collectEntries(bom: Record<string, unknown>): BomEntryRef[] {
   const entries: BomEntryRef[] = [];
-  for (const section of ['components', 'services'] as const) {
-    const list = bom[section];
-    if (!Array.isArray(list)) continue;
-    list.forEach((entry, i) => {
+  const walk = (node: unknown, section: 'components' | 'services', pointer: string): void => {
+    if (!Array.isArray(node)) return;
+    node.forEach((entry, i) => {
+      const at = `${pointer}/${i}`;
       const name =
-        isRecord(entry) && typeof entry.name === 'string' ? entry.name : `Eintrag ${i}`;
+        isRecord(entry) && typeof entry.name === 'string'
+          ? cleanText(entry.name)
+          : `Eintrag ${i}`;
       entries.push({
-        pointer: `/${section}/${i}`,
-        label: `"${name}" (${section}/${i})`,
+        pointer: at,
+        label: `"${name}" (${at.slice(1)})`,
         properties: isRecord(entry) ? entry.properties : undefined,
       });
+      // In beide möglichen Kind-Listen absteigen, egal welche Sektion.
+      if (isRecord(entry)) {
+        walk(entry.components, section, `${at}/components`);
+        walk(entry.services, section, `${at}/services`);
+      }
     });
-  }
+  };
+  walk(bom.components, 'components', '/components');
+  walk(bom.services, 'services', '/services');
   return entries;
 }
 
@@ -173,12 +188,13 @@ export function checkProfile(bom: unknown): Finding[] {
   for (const entry of entries) {
     const props = Array.isArray(entry.properties) ? entry.properties : [];
     const seen = new Map<string, string[]>();
+    let sawDsov = false; // irgendeine dsov-Property, auch eine falsch geschriebene
 
     props.forEach((raw, i) => {
       if (!isRecord(raw) || typeof raw.name !== 'string') return;
       const key = raw.name;
       if (!key.startsWith(NAMESPACE)) return; // fremde Namespaces gehen sov-lint nichts an
-      const value = typeof raw.value === 'string' ? raw.value : '';
+      sawDsov = true;
       const prop = BY_KEY.get(key);
       const pointer = `${entry.pointer}/properties/${i}`;
 
@@ -186,26 +202,40 @@ export function checkProfile(bom: unknown): Finding[] {
         findings.push({
           pointer,
           code: 'profil/unbekannte-property',
-          message: `${entry.label}: unbekannte Profil-Property "${key}". Gültige Schlüssel: siehe spec/profile.md.`,
+          message: `${entry.label}: unbekannte Profil-Property "${cleanText(key)}". Gültige Schlüssel: siehe spec/profile.md.`,
         });
         return;
       }
 
+      // value ist im CycloneDX-Schema optional - fehlendes Feld getrennt vom
+      // leeren String melden, sonst sucht der Nutzer nach einem "" das es
+      // gar nicht gibt.
+      const hasValue = typeof raw.value === 'string';
+      const value = hasValue ? (raw.value as string) : '';
       const list = seen.get(key) ?? [];
       list.push(value);
       seen.set(key, list);
+
+      if (!hasValue) {
+        findings.push({
+          pointer,
+          code: 'profil/wert-fehlt',
+          message: `${entry.label}: ${key} hat kein value-Feld. Erlaubt: ${allowedList(prop)}.`,
+        });
+        return;
+      }
 
       const valueOk = prop.pattern ? prop.pattern.test(value) : prop.values.includes(value);
       if (!valueOk) {
         findings.push({
           pointer,
           code: 'profil/wert-ungültig',
-          message: `${entry.label}: ungültiger Wert "${value}" für ${key}. Erlaubt: ${allowedList(prop)}.`,
+          message: `${entry.label}: ungültiger Wert "${cleanText(value)}" für ${key}. Erlaubt: ${allowedList(prop)}.`,
         });
       }
     });
 
-    if (seen.size === 0) {
+    if (!sawDsov) {
       findings.push({
         pointer: entry.pointer,
         code: 'profil/keine-properties',

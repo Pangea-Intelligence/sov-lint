@@ -109,7 +109,7 @@ describe('assessEntry (Achsen-Logik)', () => {
       'dsov:exit:alternative': 'mit-abstrichen',
       'dsov:exit:dataPortability': 'teilweise',
     };
-    const autark = assessEntry(entry(base));
+    const autark = assessEntry(entry(base)); // Kontrolle 4, Kontinuität 4
     expect(autark.axes.Exit).toBe(3); // min(2,2,2) + 1
 
     const cloudUs = assessEntry(
@@ -121,6 +121,22 @@ describe('assessEntry (Achsen-Logik)', () => {
       })
     );
     expect(cloudUs.axes.Exit).toBe(2); // Kontrolle 1 -> keine Anhebung
+  });
+
+  it('Exit-Anhebung greift NICHT bei abschaltbaren Diensten (Kontinuität < 4)', () => {
+    // DE-Cloud (Kontrolle 3), aber offlineCapability "tage" (Kontinuität 3):
+    // jederzeit abschaltbar, totaler Lock-in -> keine Anhebung, bleibt Stufe 1.
+    const a = assessEntry(
+      entry({
+        'dsov:service:deployment': 'cloud-anbieter', // ext=nein -> Kontrolle 3
+        'dsov:dependency:offlineCapability': 'tage', // Kontinuität 3
+        'dsov:dependency:integrationDepth': 'tief-integriert',
+        'dsov:exit:alternative': 'keine',
+        'dsov:exit:dataPortability': 'proprietär-gefangen',
+      })
+    );
+    expect(a.axes.Exit).toBe(1);
+    expect(a.level).toBe(1);
   });
 });
 

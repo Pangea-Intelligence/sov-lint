@@ -17,11 +17,12 @@ CycloneDX-Specification-Repo:
 
 ## Regeln
 
-1. **Nie von Hand editieren.** Die Dateien werden ausschliesslich über
+1. **Nie von Hand editieren.** Die Dateien werden ausschließlich über
    `node scripts/vendor-schemas.mjs --force` aktualisiert.
 2. **Keine lokalen Patches.** Stand heute gibt es keine Abweichungen vom
    Upstream. Sollte je ein Patch nötig werden, wird er hier dokumentiert
-   (Datei, Grund, Diff) - analog zum Vorgehen in dpp-lint.
+   (Datei, Grund, Diff) - analog zum Vorgehen in dpp-lint. Die Dateien
+   werden ausschließlich per Skript aktualisiert, nie von Hand.
 3. **Version anheben = bewusste Entscheidung.** CycloneDX 1.7 existiert;
    sov-lint bleibt vorerst auf 1.6, weil 1.6 die von Werkzeugen
    (z.B. Dependency-Track) am breitesten unterstützte Version ist.

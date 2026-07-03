@@ -27,16 +27,30 @@ runs:
   steps:
     - name: sov-lint ausführen
       shell: bash
+      # Inputs kommen über env: als Variablen herein, NICHT per ${{ }} direkt
+      # in den Skripttext. Sonst wäre jeder Input (aus PR-Titel, Branch-Name
+      # etc.) eine Script-Injection - böse gemeinte Anführungszeichen brächen
+      # aus dem Skript aus und liefen auf dem Runner.
+      env:
+        SOVLINT_COMMAND: ${{ inputs.command }}
+        SOVLINT_FILES: ${{ inputs.files }}
+        SOVLINT_VERSION: ${{ inputs.version }}
+        SOVLINT_ARGS: ${{ inputs.args }}
+        SOVLINT_ACTION_PATH: ${{ github.action_path }}
       run: |
         set -euo pipefail
-        if [ "${{ inputs.version }}" = "local" ]; then
+        if [ "$SOVLINT_VERSION" = "local" ]; then
           # Aus dem Action-Checkout bauen - so testet die CI dieses Repos die
           # Action selbst, bevor eine Version auf npm liegt.
-          ( cd "${GITHUB_ACTION_PATH}" && npm ci --silent && npm run build --silent )
-          RUNNER=(node "${GITHUB_ACTION_PATH}/dist/cli.js")
+          ( cd "$SOVLINT_ACTION_PATH" && npm ci --silent && npm run build --silent )
+          RUNNER=(node "$SOVLINT_ACTION_PATH/dist/cli.js")
         else
-          RUNNER=(npx --yes "sov-lint@${{ inputs.version }}")
+          RUNNER=(npx --yes "sov-lint@$SOVLINT_VERSION")
         fi
-        read -r -a FILES <<< "${{ inputs.files }}"
-        read -r -a EXTRA <<< "${{ inputs.args }}"
-        "${RUNNER[@]}" "${{ inputs.command }}" "${FILES[@]}" ${EXTRA[@]+"${EXTRA[@]}"}
+        read -r -a FILES <<< "$SOVLINT_FILES"
+        read -r -a EXTRA <<< "$SOVLINT_ARGS"
+        if [ "${#FILES[@]}" -eq 0 ]; then
+          echo "::error::sov-lint: keine Dateien angegeben (Input 'files')"
+          exit 2
+        fi
+        "${RUNNER[@]}" "$SOVLINT_COMMAND" ${FILES[@]+"${FILES[@]}"} ${EXTRA[@]+"${EXTRA[@]}"}

@@ -3,6 +3,16 @@ import { readFileSync, statSync } from 'node:fs';
 /** Maximal akzeptierte Dateigröße in Bytes (10 MB). */
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+/**
+ * Maximale Zahl an Einträgen (components + services, auch verschachtelt), die
+ * am Stück validiert werden. Das Byte-Limit allein schützt nicht: die
+ * Schema-Validierung skaliert mit der Eintragszahl, nicht mit der Dateigröße,
+ * und eine Datei knapp unter 10 MB mit Zehntausenden Einträgen kann einen
+ * CI-Lauf minutenlang blockieren. Realistische Abhängigkeits-Stücklisten
+ * haben Dutzende, nicht Tausende Einträge - 2000 ist großzügig.
+ */
+export const MAX_ENTRIES = 2000;
+
 export type DetectedEncoding =
   | 'utf-8'
   | 'utf-8 (BOM)'
@@ -35,6 +45,21 @@ export class ReadError extends Error {
   }
 }
 
+/**
+ * Trennt Bedienfehler (falscher Pfad, zu große/unlesbare Datei) von
+ * inhaltlichen Befunden. NOT_FOUND & Co. sind Exit 2 (der Nutzer hat das
+ * Werkzeug falsch aufgerufen); BAD_JSON/BAD_ENCODING sind Exit 1, denn die
+ * Datei existiert, ist aber keine gültige Eingabe - ein legitimer Befund.
+ */
+export function isUsageError(code: ReadError['code']): boolean {
+  return (
+    code === 'NOT_FOUND' ||
+    code === 'NOT_A_FILE' ||
+    code === 'TOO_LARGE' ||
+    code === 'UNREADABLE'
+  );
+}
+
 function swapBytes(buf: Buffer): Buffer {
   const out = Buffer.from(buf); // Kopie, Eingabe nicht mutieren
   out.swap16();
@@ -57,6 +82,21 @@ export function decodeJsonBuffer(
   let encoding: DetectedEncoding;
   let body: Buffer;
   let needsSwap = false; // Big-Endian muss für TextDecoder('utf-16le') geswappt werden
+
+  // UTF-32-BOMs zuerst abfangen: FF FE 00 00 (LE) würde sonst als UTF-16LE
+  // (FF FE) fehlerkannt und als kryptischer JSON-Fehler statt als klarer
+  // Encoding-Hinweis enden. UTF-32 wird nicht unterstützt.
+  if (
+    buf.length >= 4 &&
+    ((buf[0] === 0xff && buf[1] === 0xfe && buf[2] === 0x00 && buf[3] === 0x00) ||
+      (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0xfe && buf[3] === 0xff))
+  ) {
+    throw new ReadError(
+      'BAD_ENCODING',
+      `${context}: Datei ist UTF-32 (BOM erkannt). Unterstützt werden nur UTF-8 und UTF-16 LE/BE. ` +
+        `Bitte als UTF-8 exportieren.`
+    );
+  }
 
   if (buf.length >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf) {
     encoding = 'utf-8 (BOM)';

@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import pc from 'picocolors';
 import { fromRoot } from '../core/paths.js';
-import { readPayload, ReadError } from '../core/read.js';
+import { readPayload, ReadError, isUsageError, MAX_ENTRIES } from '../core/read.js';
 import { validateBom, SPEC_VERSION } from '../core/cyclonedx.js';
 import { checkProfile } from '../core/profile.js';
 import type { Finding } from '../core/finding.js';
@@ -15,6 +16,32 @@ export interface FileResult {
   file: string;
   valid: boolean;
   findings: Finding[];
+  /** true bei Bedienfehlern (Pfad falsch, interner Fehler) - führt zu Exit 2. */
+  usageError?: boolean;
+}
+
+function isRecordTop(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Zählt Einträge (components + services) rekursiv, ohne Objekte zu materialisieren. */
+function countEntries(data: unknown): number {
+  let n = 0;
+  const walk = (node: unknown): void => {
+    if (!Array.isArray(node)) return;
+    for (const entry of node) {
+      n++;
+      if (isRecordTop(entry)) {
+        walk(entry.components);
+        walk(entry.services);
+      }
+    }
+  };
+  if (isRecordTop(data)) {
+    walk(data.components);
+    walk(data.services);
+  }
+  return n;
 }
 
 function version(): string {
@@ -78,27 +105,59 @@ function checkEnvelope(data: unknown): Finding[] {
  * melden zwei Schichten dieselbe kaputte Stelle doppelt. Wird auch von
  * `screen` genutzt: bewertet wird nur, was lint besteht.
  */
+/** Finding-Codes, die einen Bedienfehler (Exit 2) statt eines Befunds (Exit 1) markieren. */
+const USAGE_FINDING_CODES = new Set(['format/zu-viele-eintraege']);
+
 export function lintData(data: unknown): Finding[] {
-  let findings = checkEnvelope(data);
-  if (findings.length === 0) {
-    findings = validateBom(data);
-    if (findings.length === 0) {
-      findings = checkProfile(data);
-    }
+  const envelope = checkEnvelope(data);
+  if (envelope.length > 0) return envelope;
+
+  // Eintrags-Cap VOR der teuren Schema-Validierung: schützt CI-Läufe vor
+  // pathologisch grossen Dateien (siehe MAX_ENTRIES).
+  const count = countEntries(data);
+  if (count > MAX_ENTRIES) {
+    return [
+      {
+        pointer: '',
+        code: 'format/zu-viele-eintraege',
+        message:
+          `Datei hat ${count} Einträge, sov-lint validiert höchstens ${MAX_ENTRIES} am Stück. ` +
+          `Bitte die Stückliste in kleinere Dateien aufteilen.`,
+      },
+    ];
   }
-  return findings;
+
+  const schema = validateBom(data);
+  if (schema.length > 0) return schema;
+  return checkProfile(data);
 }
 
 function lintOne(file: string): FileResult {
-  let findings: Finding[];
   try {
     const { data } = readPayload(file);
-    findings = lintData(data);
+    const findings = lintData(data);
+    const usageError = findings.some((f) => USAGE_FINDING_CODES.has(f.code));
+    return { file, valid: findings.length === 0, findings, usageError };
   } catch (err) {
-    const message = err instanceof ReadError ? err.message : `${file}: ${(err as Error).message}`;
-    findings = [{ pointer: '', code: 'lesen/fehler', message }];
+    if (err instanceof ReadError) {
+      return {
+        file,
+        valid: false,
+        findings: [{ pointer: '', code: 'lesen/fehler', message: err.message }],
+        usageError: isUsageError(err.code),
+      };
+    }
+    // Kein ReadError = interner Fehler (z.B. Schema-Datei fehlt/korrupt) -
+    // das ist ein Bedienfehler (Exit 2), kein Befund über die Stückliste.
+    return {
+      file,
+      valid: false,
+      findings: [
+        { pointer: '', code: 'intern/fehler', message: `${file}: interner Fehler: ${(err as Error).message}` },
+      ],
+      usageError: true,
+    };
   }
-  return { file, valid: findings.length === 0, findings };
 }
 
 function printResult(result: FileResult): void {
@@ -127,13 +186,23 @@ export function runLint(files: string[], opts: LintOptions): number {
     return 2;
   }
 
+  // Dieselbe Datei (z.B. durch überlappende Globs) nur einmal prüfen -
+  // sonst erscheinen Befunde doppelt und die Zählung stimmt nicht.
+  const seenPaths = new Set<string>();
+  const uniqueFiles = files.filter((f) => {
+    const key = path.resolve(f);
+    if (seenPaths.has(key)) return false;
+    seenPaths.add(key);
+    return true;
+  });
+
   const human = !opts.json;
   if (human && !opts.quiet) {
     console.log(pc.bold(`sov-lint ${version()} - von Pangea Intelligence`));
     console.log('');
   }
 
-  const results = files.map((file) => {
+  const results = uniqueFiles.map((file) => {
     const result = lintOne(file);
     if (human) printResult(result);
     return result;
@@ -150,5 +219,6 @@ export function runLint(files: string[], opts: LintOptions): number {
     console.log(failed > 0 ? pc.red(summary) : pc.green(summary));
   }
 
+  if (results.some((r) => r.usageError)) return 2;
   return failed > 0 ? 1 : 0;
 }

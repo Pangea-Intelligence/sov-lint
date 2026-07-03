@@ -24,7 +24,8 @@ const force = process.argv.includes('--force');
 const ref = process.env.CYCLONEDX_REF ?? DEFAULT_REF;
 
 async function fetchText(url) {
-  const res = await fetch(url);
+  // Timeout, damit der Build nicht unbegrenzt hängt, wenn der Host stumm bleibt.
+  const res = await fetch(url, { signal: AbortSignal.timeout(30_000) });
   if (!res.ok) {
     throw new Error(`${url}: HTTP ${res.status}`);
   }

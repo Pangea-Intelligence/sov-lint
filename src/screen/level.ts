@@ -9,6 +9,8 @@
  * unvalidierten Daten sind die Ergebnisse undefiniert.
  */
 
+import { cleanText } from '../core/sanitize.js';
+
 export const LEVEL_NAMES = [
   'vollständig exponiert',
   'stark abhängig',
@@ -42,6 +44,8 @@ export interface EntryAssessment {
   unknowns: string[];
   /** Konzernmutter in US/CN, aber extraterritorial=nein deklariert. */
   contradiction: boolean;
+  /** Schützenswerte Daten (Betriebsgeheimnisse/personenbezogen) schwach abgesichert (Daten-Achse <= 1). */
+  dataExposure: boolean;
 }
 
 export interface ScreenAssessment {
@@ -57,15 +61,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Extrahiert Einträge und ihre dsov-Werte aus einer lint-sauberen BOM. */
+/**
+ * Extrahiert Einträge und ihre dsov-Werte aus einer lint-sauberen BOM,
+ * inklusive verschachtelter components[].components[] / services[].services[]
+ * (dieselbe Rekursion wie collectEntries im Profil-Check, sonst würde screen
+ * Kind-Einträge stumm übergehen).
+ */
 export function extractEntries(bom: unknown): EntryInput[] {
   if (!isRecord(bom)) return [];
   const entries: EntryInput[] = [];
-  for (const section of ['components', 'services'] as const) {
-    const list = bom[section];
-    if (!Array.isArray(list)) continue;
-    list.forEach((entry, i) => {
+  const walk = (node: unknown, pointer: string): void => {
+    if (!Array.isArray(node)) return;
+    node.forEach((entry, i) => {
       if (!isRecord(entry)) return;
+      const at = `${pointer}/${i}`;
       const values = new Map<string, string[]>();
       const props = Array.isArray(entry.properties) ? entry.properties : [];
       for (const raw of props) {
@@ -78,12 +87,16 @@ export function extractEntries(bom: unknown): EntryInput[] {
         values.set(raw.name, list);
       }
       entries.push({
-        pointer: `/${section}/${i}`,
-        name: typeof entry.name === 'string' ? entry.name : `Eintrag ${i}`,
+        pointer: at,
+        name: typeof entry.name === 'string' ? cleanText(entry.name) : `Eintrag ${i}`,
         values,
       });
+      walk(entry.components, `${at}/components`);
+      walk(entry.services, `${at}/services`);
     });
-  }
+  };
+  walk(bom.components, '/components');
+  walk(bom.services, '/services');
   return entries;
 }
 
@@ -151,7 +164,7 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
     classification.includes('betriebsgeheimnisse') &&
     (location === 'drittland' || location === 'unbekannt')
   ) {
-    // Verschärfung: Betriebsgeheimnisse ausserhalb von EU/EWR (oder an
+    // Verschärfung: Betriebsgeheimnisse außerhalb von EU/EWR (oder an
     // unbekanntem Ort) sind die härteste Einzelexposition im Profil.
     daten = 0;
   }
@@ -176,10 +189,12 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
     2
   );
   let exit = Math.min(altScore, portScore, intScore);
-  // Anhebung: Wer autark und dauerhaft lauffähig ist, hat Zeit für den
-  // Ausstieg - Exit-Druck entsteht erst, wenn Kontrolle oder Kontinuität
-  // wackeln.
-  if (kontrolle >= 3 && kontinuität >= 3) {
+  // Anhebung: Wer nicht abschaltbar ist (Kontinuität 4 = dauerhaft) und die
+  // Kontrolle hält (Kontrolle >= 3), hat Zeit für den Ausstieg - Exit-Druck
+  // entsteht erst durch drohende Abschaltung. Die Schwelle ist bewusst eng:
+  // ein Cloud-Dienst mit offlineCapability "tage" (Kontinuität 3) kann
+  // jederzeit abgeschaltet werden und bekommt die Anhebung nicht.
+  if (kontrolle >= 3 && kontinuität >= 4) {
     exit = Math.min(4, exit + 1);
   }
 
@@ -192,6 +207,13 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
   const level = Math.min(...Object.values(axes));
   const weakestAxis = (Object.keys(axes) as AxisName[]).find((a) => axes[a] === level) ?? 'Kontrolle';
 
+  // Vertraulichkeits-Exposition hängt nicht an der Betriebs-Kritikalität:
+  // der Abfluss von Konstruktionsdaten ist gleich schlimm, egal ob das
+  // Tool ersetzbar ist. Daher als eigenes Signal, unabhängig vom Level.
+  const sensitive =
+    classification.includes('betriebsgeheimnisse') || classification.includes('personenbezogen');
+  const dataExposure = sensitive && daten <= 1;
+
   return {
     pointer: entry.pointer,
     name: entry.name,
@@ -201,6 +223,7 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
     weakestAxis,
     unknowns,
     contradiction,
+    dataExposure,
   };
 }
 

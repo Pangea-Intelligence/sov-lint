@@ -17,6 +17,7 @@ export {
   extractEntries,
   LEVEL_NAMES,
   EXTRATERRITORIAL_COUNTRIES,
+  type EntryInput,
   type EntryAssessment,
   type ScreenAssessment,
   type AxisName,
@@ -29,5 +30,6 @@ export {
   type ScreenOptions,
   type ScreenFinding,
   type ScreenFileResult,
+  type ScreenStatus,
   type Severity,
 } from './commands/screen.js';

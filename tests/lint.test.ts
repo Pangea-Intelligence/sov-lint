@@ -68,11 +68,16 @@ describe('runLint (Exit-Code-Vertrag: 0 = sauber, 1 = Befunde, 2 = Bedienfehler)
     expect(results[0].findings[0].code).toBe('format/kein-cyclonedx');
   });
 
-  it('meldet fehlende Dateien als Befund, nicht als Absturz', () => {
-    expect(runLint(['gibt-es-nicht.json'], { json: true, quiet: true })).toBe(1);
+  it('behandelt fehlende Dateien als Bedienfehler (Exit 2), nicht als Absturz', () => {
+    // Falscher Pfad ist ein Bedienfehler (Exit 2), kein Befund über eine
+    // Stückliste - sonst meldet CI ein Souveränitäts-Problem, wo nur der
+    // Dateiname falsch ist.
+    expect(runLint(['gibt-es-nicht.json'], { json: true, quiet: true })).toBe(2);
     const results = JSON.parse(logs.join('\n')) as Array<{
+      usageError?: boolean;
       findings: Array<{ code: string; message: string }>;
     }>;
+    expect(results[0].usageError).toBe(true);
     expect(results[0].findings[0].code).toBe('lesen/fehler');
     expect(results[0].findings[0].message).toContain('nicht gefunden');
   });

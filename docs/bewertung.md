@@ -82,27 +82,37 @@ Minimum aus drei Teilwerten:
 | `mit-abstrichen` | 2 | | `teilweise` | 2 | | `schnittstellen` | 3 |
 | `keine` | 1 | | `proprietär-gefangen` | 1 | | `tief-integriert` | 2 |
 
-**Anhebung:** Steht sowohl Kontrolle als auch Kontinuität auf mindestens 3,
-wird die Exit-Achse um 1 angehoben (maximal 4). Begründung: Wer autark und
-dauerhaft lauffähig ist, hat Zeit für den Ausstieg - Exit-Druck entsteht
-erst, wenn Kontrolle oder Kontinuität wackeln. Ohne diese Regel stünde ein
-souverän betriebenes deutsches On-Premise-ERP nur wegen seiner
-Integrationstiefe auf Stufe 2, was das Ergebnis unglaubwürdig machen würde.
+**Anhebung:** Steht die Kontinuität auf 4 (`dauerhaft`) und die Kontrolle auf
+mindestens 3, wird die Exit-Achse um 1 angehoben (maximal 4). Begründung: Wer
+nicht abschaltbar ist und die Kontrolle hält, hat Zeit für den Ausstieg -
+Exit-Druck entsteht erst durch drohende Abschaltung. Die Schwelle ist bewusst
+eng: ein Cloud-Dienst mit `offlineCapability` `tage` (Kontinuität 3) kann
+jederzeit abgeschaltet werden und bekommt die Anhebung nicht. Ohne die Regel
+stünde ein souverän betriebenes, dauerhaft lauffähiges deutsches
+On-Premise-ERP nur wegen seiner Integrationstiefe auf Stufe 2, was das
+Ergebnis unglaubwürdig machen würde.
 
 ## Befunde und Exit-Codes
 
 | Befund | Schwere |
 |---|---|
-| Geschäftskritischer Eintrag mit Stufe 0-1 (deckelt) | hoch |
+| Geschäftskritischer Eintrag mit Stufe 0-1 (deckelt oder trägt zum niedrigen Level bei) | hoch |
+| Schützenswerte Daten (Betriebsgeheimnisse/personenbezogen) schwach abgesichert - unabhängig von der Kritikalität | mittel |
 | `unbekannt`-Angaben | mittel |
 | Widerspruch Sitzland vs. Extraterritorialitäts-Angabe | mittel |
 | Kein Eintrag als geschäftskritisch markiert | mittel |
-| "Wichtiger" (nicht kritischer) Eintrag mit Stufe 0-1 | info |
+| Nicht-kritischer Eintrag (wichtig oder ersetzbar) mit Stufe 0-1 | info |
+
+Die Datenexpositions-Regel ist bewusst von der Kritikalität entkoppelt: Der
+Abfluss von Konstruktionsdaten wiegt gleich schwer, egal ob das Werkzeug
+selbst ersetzbar ist. So verschwindet keine exponierte Abhängigkeit lautlos
+aus dem Bericht.
 
 Exit-Codes von `sov-lint screen`: `0` = keine Befunde der Schwere
 hoch/mittel, `1` = akute Befunde oder Datei besteht `lint` nicht,
-`2` = Bedienfehler. `screen` bewertet nur Dateien, die `lint` bestehen -
-auf unvollständigen Angaben wäre jedes Level eine Scheinpräzision.
+`2` = Bedienfehler (falscher Pfad, Datei zu gross, interner Fehler).
+`screen` bewertet nur Dateien, die `lint` bestehen - auf unvollständigen
+Angaben wäre jedes Level eine Scheinpräzision.
 
 ## Bewusste Grenzen
 

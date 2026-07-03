@@ -31,34 +31,44 @@ Einträge: 6 (davon 4 geschäftskritisch)
   Stufe 0  GitHub                     wichtig            schwächste Achse: Daten
   Stufe 1  SolidWorks                 geschäftskritisch  schwächste Achse: Kontinuität
   Stufe 1  Microsoft 365              geschäftskritisch  schwächste Achse: Kontrolle
+  Stufe 1  Mailchimp                  ersetzbar          schwächste Achse: Kontrolle
   Stufe 2  DATEV Unternehmen online   geschäftskritisch  schwächste Achse: Daten
   Stufe 3  proALPHA ERP               geschäftskritisch  schwächste Achse: Exit
 
 Klumpenrisiko-Level: Stufe 1 von 4 - stark abhängig
 Gedeckelt von: SolidWorks, Microsoft 365
+
+Befunde:
+  [hoch]   SolidWorks: Stufe 1 (stark abhängig), deckelt das Firmen-Level. Schwächste Achse: Kontinuität (1).
+  [hoch]   Microsoft 365: Stufe 1 (stark abhängig), deckelt das Firmen-Level. Schwächste Achse: Kontrolle (1).
+  [mittel] GitHub: schützenswerte Daten (Betriebsgeheimnisse oder personenbezogen) schwach abgesichert - Daten-Achse auf Stufe 0.
+  [info]   GitHub: Stufe 0 (schwächste Achse: Daten), deckelt aber nicht - Kritikalität ist "wichtig".
+  [info]   Mailchimp: Stufe 1 (schwächste Achse: Kontrolle), deckelt aber nicht - Kritikalität ist "ersetzbar".
 ```
 
 Die Pointe der Beispiel-Firma: Nicht die Cloud ist das schwächste Glied,
 sondern das CAD-System, das im eigenen Haus läuft - und ohne Lizenzserver
 sofort stirbt, während die Konstruktionsdaten proprietär gefangen sind.
 Das Firmen-Level bestimmen nur **geschäftskritische** Einträge: GitHub steht
-auf Stufe 0, deckelt aber nicht. Die vollständigen Bewertungsregeln sind
-offen dokumentiert in [`docs/bewertung.md`](docs/bewertung.md).
+auf Stufe 0, deckelt aber nicht - taucht aber trotzdem als Befund auf, damit
+keine exponierte Abhängigkeit lautlos verschwindet. Die vollständigen
+Bewertungsregeln sind offen dokumentiert in [`docs/bewertung.md`](docs/bewertung.md).
 
-Beispiel-Ausgabe von `lint` für eine unvollständige Stückliste:
+Beispiel-Ausgabe von `lint` für die mitgelieferte fehlerhafte Stückliste:
 
 ```
-sov-lint 0.1.0 - von Pangea Intelligence
-
-FEHLER  stueckliste.json - 2 Befunde
-  /services/0  "Microsoft 365" (services/0): Pflicht-Property dsov:dependency:offlineCapability fehlt. Erlaubt: dauerhaft | tage | stunden | sofort-tot.
+FEHLER  stueckliste-fehlerhaft.json - 5 Befunde
   /components/0/properties/6  "SolidWorks" (components/0): ungültiger Wert "kritisch" für dsov:dependency:criticality. Erlaubt: geschäftskritisch | wichtig | ersetzbar.
-
-1 Datei geprüft, 0 sauber, 1 mit Befunden
+  /services/0/properties/0  "Microsoft 365" (services/0): unbekannte Profil-Property "dsov:provider:contry". Gültige Schlüssel: siehe spec/profile.md.
+  /services/0  "Microsoft 365" (services/0): Pflicht-Property dsov:provider:country fehlt. Erlaubt: ISO-3166-1 alpha-2, z.B. DE, US, CN.
+  /services/0  "Microsoft 365" (services/0): dsov:provider:extraterritorial kommt 2x vor, ist aber nur einmal zulässig.
+  /services/0  "Microsoft 365" (services/0): Pflicht-Property dsov:dependency:offlineCapability fehlt. Erlaubt: dauerhaft | tage | stunden | sofort-tot.
 ```
 
-Exit-Codes: `0` = alles sauber, `1` = Befunde, `2` = Bedienfehler. Damit ist
-`sov-lint` direkt CI-fähig.
+Exit-Codes für beide Kommandos: `0` = alles sauber, `1` = Befunde, `2` =
+Bedienfehler (falscher Pfad, Datei zu gross). Damit ist `sov-lint` direkt
+CI-fähig. Mit `--quiet` entfällt das Banner, mit `--json` gibt es
+maschinenlesbare Ausgabe.
 
 ## Wie sieht so eine Stückliste aus?
 
@@ -94,14 +104,19 @@ Das Repo ist selbst eine Action - drei Zeilen, und jede Änderung an der
 Stückliste wird im CI geprüft:
 
 ```yaml
-- uses: Pangea-Intelligence/sov-lint@main
+- uses: Pangea-Intelligence/sov-lint@v0.1.0
   with:
     files: stueckliste.json          # command: screen für die Bewertung
 ```
 
+Die Action lädt sich per `npx sov-lint@<version>` (Standard: `latest`). Damit
+das funktioniert, muss das npm-Paket veröffentlicht sein - bis dahin nutzt die
+Action-CI dieses Repos den eingebauten Pfad `version: local`, der aus dem
+Checkout baut. Immer eine feste Version pinnen (`@v0.1.0`), nicht `@main`.
+
 Exit-Codes: `0` = sauber, `1` = Befunde (Step schlägt fehl), `2` = Bedienfehler.
-Die eigene CI dieses Repos führt die Action gegen die Beispiele aus - in beide
-Richtungen (saubere Datei passiert, kaputte lässt den Job scheitern).
+Die eigene CI dieses Repos prüft die exakten Exit-Codes gegen die Beispiele -
+valide Datei, fehlerhafte Datei und Bedienfehler getrennt.
 
 ## Was sov-lint bewusst nicht tut
 

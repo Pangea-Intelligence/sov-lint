@@ -42,7 +42,7 @@ CRA-anschlussfähig.
    ehrliche schlechteste Stufe immer wählbar ist, gibt es keinen Grund, ein
    Feld wegzulassen. Nicht zu wissen, wo die eigenen Daten liegen, ist ein
    Befund und kein Ausfüllfehler - Prüfwerkzeuge behandeln `unbekannt`
-   deshalb als eigenes Finding, nicht als Fehler.
+   deshalb als eigenen Befund, nicht als Fehler.
 4. **Abgeleitete Werte werden nicht erfragt.** Die Exit-Härte (Wechselkosten,
    Migrationszeit) berechnet sich aus Integrationstiefe, Alternativen und
    Datenportabilität. Niemand muss Euro-Beträge schätzen.
