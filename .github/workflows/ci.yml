@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# GITHUB_TOKEN minimal halten, unabhängig von Repo-Defaults.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -17,6 +21,10 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm ci
+      - name: Lint
+        run: |
+          npm run lint
+          npm run format:check
       - run: npm run build
       - run: npm test
 

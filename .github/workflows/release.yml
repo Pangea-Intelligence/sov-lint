@@ -1,0 +1,37 @@
+# Release: baut, testet und publiziert sov-lint nach npmjs.com bei jedem Tag "v*".
+# Kein NODE_AUTH_TOKEN-Secret: das Publishing läuft über npm Trusted Publishing (OIDC).
+# Voraussetzung: Trusted Publishing muss für das Paket "sov-lint" auf npmjs.com
+# konfiguriert sein (Repo Pangea-Intelligence/sov-lint, Workflow release.yml).
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Supply-Chain-Härtung: Actions in diesem OIDC-privilegierten Job sind
+      # auf Commit-SHAs gepinnt (mutable Tags wie @v4 könnten nachträglich
+      # umgehängt werden).
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # npm Trusted Publishing via OIDC braucht npm >= 11.5.1, Node 22 bundelt
+      # ein älteres npm. Version fest gepinnt statt @latest, damit zur
+      # Release-Zeit kein ungeprüfter npm-Stand eingespielt wird.
+      - run: npm install -g npm@11.18.0
+      # --ignore-scripts: keine Lifecycle-Scripts fremder (Dev-)Dependencies
+      # in einem Job mit id-token: write. Build und Tests brauchen sie nicht.
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npm test
+      - run: npm publish --provenance --access public
