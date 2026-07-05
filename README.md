@@ -66,9 +66,12 @@ FEHLER  stueckliste-fehlerhaft.json - 5 Befunde
 ```
 
 Exit-Codes für beide Kommandos: `0` = alles sauber, `1` = Befunde, `2` =
-Bedienfehler (falscher Pfad, Datei zu gross). Damit ist `sov-lint` direkt
-CI-fähig. Mit `--quiet` entfällt das Banner, mit `--json` gibt es
-maschinenlesbare Ausgabe.
+Bedienfehler (falscher Pfad, Datei zu groß). Präzisierung für `screen`:
+dort zählen nur Befunde der Stufen **hoch** und **mittel** als Fehlschlag -
+liefert die Bewertung ausschließlich Info-Befunde, bleibt es bei Exit-Code
+`0`. Besteht die Datei schon `lint` nicht, gibt auch `screen` Exit-Code `1`.
+Damit ist `sov-lint` direkt CI-fähig. Mit `--quiet` entfällt das Banner,
+mit `--json` gibt es maschinenlesbare Ausgabe.
 
 ## Wie sieht so eine Stückliste aus?
 
@@ -114,7 +117,8 @@ das funktioniert, muss das npm-Paket veröffentlicht sein - bis dahin nutzt die
 Action-CI dieses Repos den eingebauten Pfad `version: local`, der aus dem
 Checkout baut. Immer eine feste Version pinnen (`@v0.1.0`), nicht `@main`.
 
-Exit-Codes: `0` = sauber, `1` = Befunde (Step schlägt fehl), `2` = Bedienfehler.
+Exit-Codes wie beim CLI: `0` = sauber, `1` = Befunde (Step schlägt fehl; bei
+`screen` erst ab Stufe mittel, reine Info-Befunde bleiben grün), `2` = Bedienfehler.
 Die eigene CI dieses Repos prüft die exakten Exit-Codes gegen die Beispiele -
 valide Datei, fehlerhafte Datei und Bedienfehler getrennt.
 
