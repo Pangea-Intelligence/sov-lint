@@ -35,14 +35,14 @@ export function runTemplate(opts: TemplateOptions): number {
 
   if (kind === 'symlink') {
     console.error(
-      pc.red(`sov-lint: ${target} ist ein Symlink - es wird aus Sicherheitsgründen nicht durch Symlinks geschrieben.`)
+      pc.red(
+        `sov-lint: ${target} ist ein Symlink - es wird aus Sicherheitsgründen nicht durch Symlinks geschrieben.`
+      )
     );
     return 2;
   }
   if (kind === 'datei' && !opts.force) {
-    console.error(
-      pc.red(`sov-lint: ${target} existiert bereits (mit --force überschreiben)`)
-    );
+    console.error(pc.red(`sov-lint: ${target} existiert bereits (mit --force überschreiben)`));
     return 2;
   }
 
@@ -51,7 +51,9 @@ export function runTemplate(opts: TemplateOptions): number {
   } catch (err) {
     const e = err as NodeJS.ErrnoException;
     console.error(
-      pc.red(`sov-lint: konnte ${target} nicht schreiben (${e.code ?? e.message}). Verzeichnis vorhanden?`)
+      pc.red(
+        `sov-lint: konnte ${target} nicht schreiben (${e.code ?? e.message}). Verzeichnis vorhanden?`
+      )
     );
     return 2;
   }
@@ -62,8 +64,7 @@ export function runTemplate(opts: TemplateOptions): number {
     console.log('');
     console.log(pc.bold(`  ${group}`));
     for (const prop of PROFILE_PROPERTIES.filter((p) => p.group === group)) {
-      const allowed =
-        prop.values.length > 0 ? prop.values.join(' | ') : (prop.patternHint ?? '');
+      const allowed = prop.values.length > 0 ? prop.values.join(' | ') : (prop.patternHint ?? '');
       console.log(`    ${pc.cyan(prop.key)}${prop.multiple ? pc.dim(' (mehrfach erlaubt)') : ''}`);
       console.log(`      ${prop.description}`);
       console.log(pc.dim(`      Werte: ${allowed}`));

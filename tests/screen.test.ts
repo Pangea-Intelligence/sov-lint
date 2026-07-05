@@ -1,11 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  assessBom,
-  assessEntry,
-  LEVEL_NAMES,
-  type EntryInput,
-} from '../src/screen/level.js';
+import { assessBom, assessEntry, LEVEL_NAMES, type EntryInput } from '../src/screen/level.js';
 import { deriveFindings, runScreen } from '../src/commands/screen.js';
 import { fromRoot } from '../src/core/paths.js';
 
@@ -75,10 +70,7 @@ describe('assessEntry (Achsen-Logik)', () => {
     );
     expect(a.axes.Kontrolle).toBe(1);
     expect(a.axes.Daten).toBe(1);
-    expect(a.unknowns.sort()).toEqual([
-      'dsov:data:location',
-      'dsov:provider:extraterritorial',
-    ]);
+    expect(a.unknowns.sort()).toEqual(['dsov:data:location', 'dsov:provider:extraterritorial']);
   });
 
   it('Verschärfung: Betriebsgeheimnisse im Drittland fallen auf 0', () => {
@@ -169,9 +161,7 @@ describe('assessBom (Deckel-Regel)', () => {
       services: [
         {
           name: 'Nur ein Tool',
-          properties: [
-            { name: 'dsov:dependency:criticality', value: 'ersetzbar' },
-          ],
+          properties: [{ name: 'dsov:dependency:criticality', value: 'ersetzbar' }],
         },
       ],
     });

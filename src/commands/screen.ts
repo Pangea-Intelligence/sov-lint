@@ -3,14 +3,8 @@ import pc from 'picocolors';
 import { fromRoot } from '../core/paths.js';
 import { readPayload, ReadError, isUsageError } from '../core/read.js';
 import { lintData } from './lint.js';
-import {
-  assessBom,
-  LEVEL_NAMES,
-  type EntryAssessment,
-  type ScreenAssessment,
-} from '../screen/level.js';
+import { assessBom, LEVEL_NAMES, type ScreenAssessment } from '../screen/level.js';
 import type { Finding } from '../core/finding.js';
-import { cleanText } from '../core/sanitize.js';
 
 export interface ScreenOptions {
   json: boolean;
@@ -170,7 +164,11 @@ function screenOne(file: string): ScreenFileResult {
       status: 'bedienfehler',
       assessment: null,
       lintFindings: [
-        { pointer: '', code: 'intern/fehler', message: `${file}: interner Fehler: ${(err as Error).message}` },
+        {
+          pointer: '',
+          code: 'intern/fehler',
+          message: `${file}: interner Fehler: ${(err as Error).message}`,
+        },
       ],
       findings: [],
     };
@@ -211,7 +209,12 @@ function printAssessment(result: ScreenFileResult): void {
 
   const sorted = [...a.entries].sort((x, y) => x.level - y.level);
   for (const e of sorted) {
-    const levelLabel = e.level <= 1 ? pc.red(`Stufe ${e.level}`) : e.level === 2 ? pc.yellow(`Stufe ${e.level}`) : pc.green(`Stufe ${e.level}`);
+    const levelLabel =
+      e.level <= 1
+        ? pc.red(`Stufe ${e.level}`)
+        : e.level === 2
+          ? pc.yellow(`Stufe ${e.level}`)
+          : pc.green(`Stufe ${e.level}`);
     console.log(
       `  ${levelLabel}  ${fit(e.name, 26)} ${e.criticality.padEnd(18)} schwächste Achse: ${e.weakestAxis}`
     );
@@ -219,10 +222,18 @@ function printAssessment(result: ScreenFileResult): void {
   console.log('');
 
   if (a.companyLevel === null) {
-    console.log(pc.yellow('Klumpenrisiko-Level: nicht ermittelbar (kein geschäftskritischer Eintrag)'));
+    console.log(
+      pc.yellow('Klumpenrisiko-Level: nicht ermittelbar (kein geschäftskritischer Eintrag)')
+    );
   } else {
     const headline = `Klumpenrisiko-Level: Stufe ${a.companyLevel} von 4 - ${a.levelName}`;
-    console.log(a.companyLevel <= 1 ? pc.red(pc.bold(headline)) : a.companyLevel === 2 ? pc.yellow(pc.bold(headline)) : pc.green(pc.bold(headline)));
+    console.log(
+      a.companyLevel <= 1
+        ? pc.red(pc.bold(headline))
+        : a.companyLevel === 2
+          ? pc.yellow(pc.bold(headline))
+          : pc.green(pc.bold(headline))
+    );
     if (a.cappedBy.length > 0 && a.companyLevel < 4) {
       console.log(`Gedeckelt von: ${a.cappedBy.join(', ')}`);
     }

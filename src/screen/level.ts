@@ -170,11 +170,7 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
   }
 
   // Achse 3: Kontinuität - wie schnell steht der Prozess?
-  const kontinuität = score(
-    { dauerhaft: 4, tage: 3, stunden: 2, 'sofort-tot': 1 },
-    offline,
-    1
-  );
+  const kontinuität = score({ dauerhaft: 4, tage: 3, stunden: 2, 'sofort-tot': 1 }, offline, 1);
 
   // Achse 4: Exit - kommt man wieder raus?
   const altScore = score({ verfügbar: 4, 'mit-abstrichen': 2, keine: 1 }, alternative, 1);
@@ -205,7 +201,8 @@ export function assessEntry(entry: EntryInput): EntryAssessment {
     Exit: exit,
   };
   const level = Math.min(...Object.values(axes));
-  const weakestAxis = (Object.keys(axes) as AxisName[]).find((a) => axes[a] === level) ?? 'Kontrolle';
+  const weakestAxis =
+    (Object.keys(axes) as AxisName[]).find((a) => axes[a] === level) ?? 'Kontrolle';
 
   // Vertraulichkeits-Exposition hängt nicht an der Betriebs-Kritikalität:
   // der Abfluss von Konstruktionsdaten ist gleich schlimm, egal ob das

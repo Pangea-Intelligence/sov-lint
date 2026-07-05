@@ -4,7 +4,10 @@ import { checkProfile, PROFILE_PROPERTIES } from '../src/core/profile.js';
 import { fromRoot } from '../src/core/paths.js';
 
 /** Baut einen minimal-validen Eintrag mit allen 11 Pflicht-Properties. */
-function validEntry(overrides?: { drop?: string[]; extra?: Array<{ name: string; value: string }> }) {
+function validEntry(overrides?: {
+  drop?: string[];
+  extra?: Array<{ name: string; value: string }>;
+}) {
   const values: Record<string, string> = {
     'dsov:provider:country': 'DE',
     'dsov:provider:extraterritorial': 'nein',
@@ -122,7 +125,9 @@ describe('checkProfile', () => {
 
   it('erlaubt data:classification mehrfach, andere Properties nicht', () => {
     const okay = checkProfile(
-      bomWith(validEntry({ extra: [{ name: 'dsov:data:classification', value: 'personenbezogen' }] }))
+      bomWith(
+        validEntry({ extra: [{ name: 'dsov:data:classification', value: 'personenbezogen' }] })
+      )
     );
     expect(okay).toEqual([]);
 

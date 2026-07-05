@@ -153,7 +153,11 @@ function lintOne(file: string): FileResult {
       file,
       valid: false,
       findings: [
-        { pointer: '', code: 'intern/fehler', message: `${file}: interner Fehler: ${(err as Error).message}` },
+        {
+          pointer: '',
+          code: 'intern/fehler',
+          message: `${file}: interner Fehler: ${(err as Error).message}`,
+        },
       ],
       usageError: true,
     };

@@ -101,10 +101,7 @@ describe('validateBom', () => {
 
 describe('decodeJsonBuffer', () => {
   it('dekodiert UTF-16 LE mit BOM (Windows-Exporte)', () => {
-    const buf = Buffer.concat([
-      Buffer.from([0xff, 0xfe]),
-      Buffer.from('{"a":"ü"}', 'utf16le'),
-    ]);
+    const buf = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('{"a":"ü"}', 'utf16le')]);
     const { text, encoding } = decodeJsonBuffer(buf, 'test');
     expect(encoding).toBe('utf-16le (BOM)');
     expect(JSON.parse(text)).toEqual({ a: 'ü' });
