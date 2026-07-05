@@ -130,14 +130,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 function collectEntries(bom: Record<string, unknown>): BomEntryRef[] {
   const entries: BomEntryRef[] = [];
-  const walk = (node: unknown, section: 'components' | 'services', pointer: string): void => {
+  const walk = (node: unknown, pointer: string): void => {
     if (!Array.isArray(node)) return;
     node.forEach((entry, i) => {
       const at = `${pointer}/${i}`;
       const name =
-        isRecord(entry) && typeof entry.name === 'string'
-          ? cleanText(entry.name)
-          : `Eintrag ${i}`;
+        isRecord(entry) && typeof entry.name === 'string' ? cleanText(entry.name) : `Eintrag ${i}`;
       entries.push({
         pointer: at,
         label: `"${name}" (${at.slice(1)})`,
@@ -145,13 +143,13 @@ function collectEntries(bom: Record<string, unknown>): BomEntryRef[] {
       });
       // In beide möglichen Kind-Listen absteigen, egal welche Sektion.
       if (isRecord(entry)) {
-        walk(entry.components, section, `${at}/components`);
-        walk(entry.services, section, `${at}/services`);
+        walk(entry.components, `${at}/components`);
+        walk(entry.services, `${at}/services`);
       }
     });
   };
-  walk(bom.components, 'components', '/components');
-  walk(bom.services, 'services', '/services');
+  walk(bom.components, '/components');
+  walk(bom.services, '/services');
   return entries;
 }
 
