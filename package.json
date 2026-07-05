@@ -1,7 +1,7 @@
 {
   "name": "sov-lint",
   "version": "0.1.0",
-  "description": "Linter für digitale Abhängigkeits-Stücklisten im Mittelstand. Validiert CycloneDX-Dateien gegen das dsov-Profil (Jurisdiktion, Daten, Abhängigkeit, Exit). Von Pangea Intelligence.",
+  "description": "Linter for digital dependency BOMs: validates CycloneDX files against the open dsov profile to surface digital sovereignty and vendor lock-in risk. German-first CLI for the German Mittelstand (jurisdiction, data, dependency, exit). A Pangea Intelligence project.",
   "keywords": [
     "digital-sovereignty",
     "digitale-souveraenitaet",
@@ -12,15 +12,20 @@
     "mittelstand",
     "nis2",
     "supply-chain",
+    "vendor-lock-in",
+    "compliance",
     "validator",
     "linter"
   ],
   "license": "Apache-2.0",
   "author": "Pangea Intelligence <contact@pangea-intelligence.eu> (https://pangea-intelligence.eu)",
-  "homepage": "https://github.com/pangea-intelligence/sov-lint",
+  "homepage": "https://github.com/Pangea-Intelligence/sov-lint",
+  "bugs": {
+    "url": "https://github.com/Pangea-Intelligence/sov-lint/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pangea-intelligence/sov-lint.git"
+    "url": "git+https://github.com/Pangea-Intelligence/sov-lint.git"
   },
   "type": "module",
   "engines": {
@@ -31,7 +36,10 @@
   },
   "main": "./dist/index.js",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
     "dist",
@@ -40,13 +48,17 @@
     "templates",
     "docs",
     "examples",
-    "NOTICE"
+    "NOTICE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.mjs\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.mjs\"",
     "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
@@ -57,8 +69,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.4",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
+    "typescript-eslint": "^8.62.1",
     "vitest": "^3.1.0"
   }
 }
