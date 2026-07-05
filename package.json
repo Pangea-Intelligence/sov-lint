@@ -1,6 +1,6 @@
 {
   "name": "sov-lint",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Linter for digital dependency BOMs: validates CycloneDX files against the open dsov profile to surface digital sovereignty and vendor lock-in risk. German-first CLI for the German Mittelstand (jurisdiction, data, dependency, exit). A Pangea Intelligence project.",
   "keywords": [
     "digital-sovereignty",

@@ -7,6 +7,11 @@ Versionierung folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-05
+
+Wartungs- und Härtungs-Release ohne Änderung am CLI-Verhalten. Erstes
+Release über den neuen, provenance-signierten Publish-Workflow.
+
 ### Hinzugefügt
 
 - SECURITY.md: Meldeweg für Schwachstellen (vertraulich per E-Mail,
@@ -61,5 +66,6 @@ Erstes Release.
 - dsov-Profil-Spezifikation (`spec/profile.md`) und deutsches README.
 - Exit-Code-Vertrag: `0` = sauber, `1` = Befunde, `2` = Bedienfehler.
 
-[Unreleased]: https://github.com/Pangea-Intelligence/sov-lint/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Pangea-Intelligence/sov-lint/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Pangea-Intelligence/sov-lint/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Pangea-Intelligence/sov-lint/releases/tag/v0.1.0
