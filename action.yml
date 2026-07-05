@@ -39,6 +39,14 @@ runs:
         SOVLINT_ACTION_PATH: ${{ github.action_path }}
       run: |
         set -euo pipefail
+        # Version-Input strikt validieren: npx akzeptiert auch npm-Alias-Syntax
+        # ("npm:fremdpaket@x") - ein Aufrufer, der untrusted Daten in den
+        # version-Input verdrahtet, könnte damit ein anderes Paket ausführen.
+        # Erlaubt sind nur SemVer (X.Y.Z, optional Prerelease), latest, local.
+        if [[ ! "$SOVLINT_VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?|latest|local)$ ]]; then
+          echo "::error::sov-lint: ungültiger version-Input \"$SOVLINT_VERSION\" (erlaubt: X.Y.Z, latest, local)"
+          exit 2
+        fi
         if [ "$SOVLINT_VERSION" = "local" ]; then
           # Aus dem Action-Checkout bauen - so testet die CI dieses Repos die
           # Action selbst, bevor eine Version auf npm liegt.
